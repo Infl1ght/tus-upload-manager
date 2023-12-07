@@ -1,3 +1,4 @@
+import { UploadOptions } from 'tus-js-client'
 import UploadManager, { IUploadCallbacks, IUploadTask, IUploader, IUploaderConstructor } from '.'
 
 const TIME_TO_TASK = 30
@@ -5,12 +6,7 @@ const TIME_DELTA = 30
 
 const createUploader: IUploaderConstructor = function (
   file: any,
-  options: {
-    metadata?: any
-    onError?: ((error: Error) => void) | null | undefined
-    onProgress?: ((bytesSent: number, bytesTotal: number) => void) | null | undefined
-    onSuccess?: (() => void) | null | undefined
-  }
+  options: UploadOptions
 ): IUploader {
   let aborted = false
   return {
@@ -42,10 +38,11 @@ const createWithErrorUploader: IUploaderConstructor = function (
   }
 ): IUploader {
   const mockErrorTasks = 1
+
   return {
     start: jest.fn().mockImplementation(() => {
       setTimeout(() => {
-        if (options.metadata.photoId < mockErrorTasks) {
+        if (options.metadata.id < mockErrorTasks) {
           if (options.onError) {
             options.onError(new Error())
           }
@@ -74,7 +71,9 @@ const getTasks = (flightId: number, numberOfTasks: number, startId = 0): IUpload
       file: new File([new ArrayBuffer(1000)], 'test'),
       id: i + startId,
       queueId: flightId,
-      meta: undefined,
+      metadata: {
+        id: i + startId,
+      },
     })
   }
   return result
@@ -147,7 +146,9 @@ describe('Upload Manager', () => {
   it('Start 2 tasks, 1 with error', async () => {
     const flightId = 1
     const tasks = getTasks(flightId, 2)
-    uploadManager = new UploadManager(createWithErrorUploader, callbacks, { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline' })
+    uploadManager = new UploadManager(
+      (file: any, options) => createWithErrorUploader(file, options), 
+      callbacks, { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline' })
 
     uploadManager.addUploadTasks(flightId, tasks)
     await new Promise<void>(res => setTimeout(res, TIME_TO_TASK * tasks.length + TIME_DELTA))
