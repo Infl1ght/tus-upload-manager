@@ -98,7 +98,7 @@ describe('Upload Manager', () => {
     uploadManager = new UploadManager(
       createUploader,
       callbacks,
-      { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline' }
+      { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline', url: 'some_url' }
     )
   })
   it('Smoke test', () => {
@@ -148,7 +148,7 @@ describe('Upload Manager', () => {
     const tasks = getTasks(flightId, 2)
     uploadManager = new UploadManager(
       (file: any, options) => createWithErrorUploader(file, options), 
-      callbacks, { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline' })
+      callbacks, { uploadRetryDelays: [3000, 6000, 9000, 12000, 15000, 18000, 21000, 30000, 60000], maxUploadThreads: 3, onOfflineMessage: 'Offline', url: 'some_url' })
 
     uploadManager.addUploadTasks(flightId, tasks)
     await new Promise<void>(res => setTimeout(res, TIME_TO_TASK * tasks.length + TIME_DELTA))

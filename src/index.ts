@@ -29,15 +29,17 @@ export interface IUploadCallbacks {
 export class UploadQueue {
   callbacks: IUploadCallbacks
   queueId: number
+  url: string = ''
 
   abortControllers: { [id: number]: AbortController } = {}
   queue: PQueue = new PQueue({ concurrency: 1 })
   currentTaskId: number | undefined = undefined
   createUploader: IUploaderConstructor
 
-  constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number) {
+  constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number, url: string) {
     this.callbacks = callbacks
     this.queueId = queueId
+    this.url = url
     this.createUploader = createUploader
   }
 
@@ -51,8 +53,8 @@ export class UploadQueue {
           this.currentTaskId = task.id
           return new Promise((resolve, reject) => {
             const uploader = this.createUploader(task.file, {
-              endpoint: '/uploads/',
-              uploadUrl: task?.tusdId ? `/uploads/${task?.tusdId}` : undefined,
+              endpoint: this.url,
+              uploadUrl: task?.tusdId ? `${this.url}${task?.tusdId}` : undefined,
               retryDelays: uploadRetryDelays,
               metadata: task.metadata,
               onError: error => {
@@ -155,6 +157,7 @@ export interface IUploadManagerOptions {
   maxUploadThreads: number
   uploadRetryDelays: number[]
   onOfflineMessage: string
+  url: string
 }
 
 class UploadManager {
@@ -165,6 +168,7 @@ class UploadManager {
   maxUploadThreads: number
   uploadRetryDelays: number[]
   onOfflineMessage: string
+  url: string
 
   constructor(createUploader: IUploaderConstructor, callbacks: IUploadCallbacks, options: IUploadManagerOptions) {
     this.createUploader = createUploader
@@ -172,6 +176,8 @@ class UploadManager {
     this.maxUploadThreads = options.maxUploadThreads
     this.uploadRetryDelays = options.uploadRetryDelays
     this.onOfflineMessage = options.onOfflineMessage
+    this.url = options.url
+
     this.queue = new PQueue({ concurrency: this.maxUploadThreads })
 
     this.queue.on('completed', queueId => {
@@ -206,7 +212,7 @@ class UploadManager {
     callbacks.onHold(tasks.map(item => item.id))
     if (!this.uploadQueues[queueId]) {
       this.queue.add(() => {
-        this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId)
+        this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId, this.url)
         return this.uploadQueues[queueId].start(tasks, this.uploadRetryDelays)
       })
     } else {
