@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "p-queue": "7.2.0",
-    "tus-js-client": "2.3.2"
+    "tus-js-client": "3.0.1"
   },
   "scripts": {
     "test": "jest",
