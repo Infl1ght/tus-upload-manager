@@ -20,7 +20,7 @@ export interface IUploader {
 
 export interface IUploadCallbacks {
   onSuccess(taskId: number): void
-  onError(taskId: number): void
+  onError(taskId: number, error: any): void
   onProgress(taskId: number, bytesUploaded: number, bytesTotal: number, percentage: number): void
   onStart(taskId: number): void
   onHold(taskId: number[]): void
@@ -58,7 +58,7 @@ export class UploadQueue {
               retryDelays: uploadRetryDelays,
               metadata: task.metadata,
               onError: error => {
-                this.callbacks.onError(task.id)
+                this.callbacks.onError(task.id, error)
                 this.currentTaskId = undefined
                 delete this.abortControllers[task.id]
                 resolve(error)
@@ -96,7 +96,7 @@ export class UploadQueue {
             })
           })
         } catch (error) {
-          this.callbacks.onError(task.id)
+          this.callbacks.onError(task.id, error)
         }
       },
       { signal: this.abortControllers[task.id].signal }
