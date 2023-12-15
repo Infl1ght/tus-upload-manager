@@ -7,6 +7,7 @@ export interface IUploadTask {
   queueId: number
   tusdId?: string
   metadata?: any
+  headers?: any
 }
 
 export interface IUploaderConstructor {
@@ -57,6 +58,7 @@ export class UploadQueue {
               uploadUrl: task?.tusdId ? `${this.url}${task?.tusdId}` : undefined,
               retryDelays: uploadRetryDelays,
               metadata: task.metadata,
+              headers: task.headers,
               onError: error => {
                 this.callbacks.onError(task.id, error)
                 this.currentTaskId = undefined
