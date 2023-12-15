@@ -156,7 +156,7 @@ export class UploadQueue {
 export interface IUploadManagerOptions {
   maxUploadThreads: number
   uploadRetryDelays: number[]
-  onOfflineMessage: string
+  onOfflineMessage: string | undefined
   url: string
 }
 
@@ -167,7 +167,7 @@ class UploadManager {
   callbacks: IUploadCallbacks | undefined = undefined
   maxUploadThreads: number
   uploadRetryDelays: number[]
-  onOfflineMessage: string
+  onOfflineMessage: string | undefined = undefined
   url: string
 
   constructor(createUploader: IUploaderConstructor, callbacks: IUploadCallbacks, options: IUploadManagerOptions) {
@@ -195,7 +195,7 @@ class UploadManager {
     })
 
     window.addEventListener('offline', e => {
-      if (this.queue.pending > 0) {
+      if (this.queue.pending > 0 && this.onOfflineMessage) {
         alert(this.onOfflineMessage)
       }
     })
