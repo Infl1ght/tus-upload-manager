@@ -158,8 +158,8 @@ export class UploadQueue {
 export interface IUploadManagerOptions {
   maxUploadThreads: number
   uploadRetryDelays: number[]
-  onOfflineMessage: string | undefined
   url: string
+  onOfflineMessage?: string
 }
 
 class UploadManager {
