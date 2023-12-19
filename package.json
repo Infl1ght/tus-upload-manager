@@ -1,7 +1,7 @@
 {
   "name": "tus-upload-manager",
   "version": "1.0.1",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
     "@babel/preset-env": "7.23.5",
