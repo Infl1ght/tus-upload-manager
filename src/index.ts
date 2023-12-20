@@ -106,12 +106,18 @@ export class UploadQueue {
   }
 
   async addTasks(tasks: IUploadTask[], uploadRetryDelays: number[]) {
-    tasks.forEach(async task => {
-      this.abortControllers[task.id] = new AbortController()
-    })
-    tasks.forEach(task => {
-      this.addNewTask(task, uploadRetryDelays)
-    })
+    try {
+      tasks.forEach(async task => {
+        this.abortControllers[task.id] = new AbortController()
+      })
+      tasks.forEach(task => {
+        this.addNewTask(task, uploadRetryDelays)
+      })
+    } catch (error) {
+      tasks.forEach(task => {
+        this.callbacks.onError(task.id, error)
+      })
+    }
   }
 
   deleteUploadTask(taskId: number) {

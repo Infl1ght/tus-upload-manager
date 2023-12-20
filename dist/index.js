@@ -85,12 +85,19 @@ class UploadQueue {
     }
     addTasks(tasks, uploadRetryDelays) {
         return __awaiter(this, void 0, void 0, function* () {
-            tasks.forEach((task) => __awaiter(this, void 0, void 0, function* () {
-                this.abortControllers[task.id] = new AbortController();
-            }));
-            tasks.forEach(task => {
-                this.addNewTask(task, uploadRetryDelays);
-            });
+            try {
+                tasks.forEach((task) => __awaiter(this, void 0, void 0, function* () {
+                    this.abortControllers[task.id] = new AbortController();
+                }));
+                tasks.forEach(task => {
+                    this.addNewTask(task, uploadRetryDelays);
+                });
+            }
+            catch (error) {
+                tasks.forEach(task => {
+                    this.callbacks.onError(task.id, error);
+                });
+            }
         });
     }
     deleteUploadTask(taskId) {
