@@ -63,8 +63,13 @@ class UploadQueue {
                             resolve(true);
                         },
                     });
-                    this.callbacks.onStart(task.id);
-                    uploader.start();
+                    uploader.findPreviousUploads().then((previousUploads) => {
+                        if (previousUploads.length) {
+                            uploader.resumeFromPreviousUpload(previousUploads[0]);
+                        }
+                        uploader.start();
+                        this.callbacks.onStart(task.id);
+                    });
                     signal === null || signal === void 0 ? void 0 : signal.addEventListener('abort', () => __awaiter(this, void 0, void 0, function* () {
                         try {
                             delete this.abortControllers[task.id];

@@ -31,6 +31,12 @@ const createUploader = function (file, options) {
                 res();
             }, 20));
         }),
+        findPreviousUploads: () => {
+            return Promise.resolve([]);
+        },
+        resumeFromPreviousUpload(previousUpload) {
+            return;
+        },
     };
 };
 const createWithErrorUploader = function (file, options) {
@@ -52,6 +58,12 @@ const createWithErrorUploader = function (file, options) {
         }),
         abort: () => {
             return Promise.resolve();
+        },
+        findPreviousUploads: () => {
+            return Promise.resolve([]);
+        },
+        resumeFromPreviousUpload(previousUpload) {
+            return;
         },
     };
 };
