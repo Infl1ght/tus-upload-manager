@@ -1,5 +1,5 @@
 import PQueue from 'p-queue'
-import { UploadOptions } from 'tus-js-client'
+import { PreviousUpload, UploadOptions } from 'tus-js-client'
 
 export interface IUploadTask {
   file: File
@@ -17,6 +17,8 @@ export interface IUploaderConstructor {
 export interface IUploader {
   start(): void
   abort(shouldTerminate?: boolean): Promise<void>
+  findPreviousUploads(): Promise<PreviousUpload[]>;
+  resumeFromPreviousUpload(previousUpload: PreviousUpload): void;
 }
 
 export interface IUploadCallbacks {
@@ -83,8 +85,13 @@ export class UploadQueue {
                 resolve(true)
               },
             })
-            this.callbacks.onStart(task.id)
-            uploader.start()
+            uploader.findPreviousUploads().then((previousUploads) => {
+              if (previousUploads.length) {
+                uploader.resumeFromPreviousUpload(previousUploads[0])
+              }
+              uploader.start()
+              this.callbacks.onStart(task.id)
+            })
 
             signal?.addEventListener('abort', async () => {
               try {

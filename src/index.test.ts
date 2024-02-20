@@ -25,6 +25,12 @@ const createUploader: IUploaderConstructor = function (
         }, 20)
       )
     }),
+    findPreviousUploads: () => {
+      return Promise.resolve([])
+    },
+    resumeFromPreviousUpload(previousUpload) {
+      return
+    },
   }
 }
 
@@ -55,6 +61,12 @@ const createWithErrorUploader: IUploaderConstructor = function (
     }),
     abort: () => {
       return Promise.resolve()
+    },
+    findPreviousUploads: () => {
+      return Promise.resolve([])
+    },
+    resumeFromPreviousUpload(previousUpload) {
+      return
     },
   }
 }
