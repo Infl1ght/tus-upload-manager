@@ -28,13 +28,14 @@ export declare class UploadQueue {
     callbacks: IUploadCallbacks;
     queueId: number;
     url: string;
+    chunkSize: number;
     abortControllers: {
         [id: number]: AbortController;
     };
     queue: PQueue;
     currentTaskId: number | undefined;
     createUploader: IUploaderConstructor;
-    constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number, url: string);
+    constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number, url: string, chunkSize: number);
     addNewTask(task: IUploadTask, uploadRetryDelays: number[]): void;
     addTasks(tasks: IUploadTask[], uploadRetryDelays: number[]): Promise<void>;
     deleteUploadTask(taskId: number): Promise<void>;
@@ -46,6 +47,7 @@ export interface IUploadManagerOptions {
     uploadRetryDelays: number[];
     url: string;
     onOfflineMessage?: string;
+    chunkSize?: number;
 }
 declare class UploadManager {
     uploadQueues: {
@@ -58,6 +60,7 @@ declare class UploadManager {
     uploadRetryDelays: number[];
     onOfflineMessage: string | undefined;
     url: string;
+    chunkSize: number;
     constructor(createUploader: IUploaderConstructor, callbacks: IUploadCallbacks, options: IUploadManagerOptions);
     addUploadTasks(queueId: number, tasks: IUploadTask[]): void;
     deleteUploadTask(queueId: number, taskId: number): Promise<void>;

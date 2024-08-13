@@ -33,16 +33,17 @@ export class UploadQueue {
   callbacks: IUploadCallbacks
   queueId: number
   url: string = ''
-
+  chunkSize: number
   abortControllers: { [id: number]: AbortController } = {}
   queue: PQueue = new PQueue({ concurrency: 1 })
   currentTaskId: number | undefined = undefined
   createUploader: IUploaderConstructor
 
-  constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number, url: string) {
+  constructor(callbacks: IUploadCallbacks, createUploader: IUploaderConstructor, queueId: number, url: string, chunkSize: number) {
     this.callbacks = callbacks
     this.queueId = queueId
     this.url = url
+    this.chunkSize = chunkSize
     this.createUploader = createUploader
   }
 
@@ -61,6 +62,7 @@ export class UploadQueue {
               retryDelays: uploadRetryDelays,
               metadata: task.metadata,
               headers: task.headers,
+              chunkSize: this.chunkSize,
               onError: error => {
                 this.callbacks.onError(task.id, error)
                 this.currentTaskId = undefined
@@ -173,6 +175,7 @@ export interface IUploadManagerOptions {
   uploadRetryDelays: number[]
   url: string
   onOfflineMessage?: string
+  chunkSize?: number
 }
 
 class UploadManager {
@@ -184,6 +187,7 @@ class UploadManager {
   uploadRetryDelays: number[]
   onOfflineMessage: string | undefined = undefined
   url: string
+  chunkSize: number
 
   constructor(createUploader: IUploaderConstructor, callbacks: IUploadCallbacks, options: IUploadManagerOptions) {
     this.createUploader = createUploader
@@ -192,6 +196,7 @@ class UploadManager {
     this.uploadRetryDelays = options.uploadRetryDelays
     this.onOfflineMessage = options.onOfflineMessage
     this.url = options.url
+    this.chunkSize = options.chunkSize || 5 * 1024 * 102
 
     this.queue = new PQueue({ concurrency: this.maxUploadThreads })
 
@@ -227,7 +232,7 @@ class UploadManager {
     callbacks.onHold(tasks.map(item => item.id))
     if (!this.uploadQueues[queueId]) {
       this.queue.add(() => {
-        this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId, this.url)
+        this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId, this.url, this.chunkSize)
         return this.uploadQueues[queueId].start(tasks, this.uploadRetryDelays)
       })
     } else {

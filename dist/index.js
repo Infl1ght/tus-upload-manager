@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadQueue = void 0;
 const p_queue_1 = __importDefault(require("p-queue"));
 class UploadQueue {
-    constructor(callbacks, createUploader, queueId, url) {
+    constructor(callbacks, createUploader, queueId, url, chunkSize) {
         this.url = '';
         this.abortControllers = {};
         this.queue = new p_queue_1.default({ concurrency: 1 });
@@ -23,6 +23,7 @@ class UploadQueue {
         this.callbacks = callbacks;
         this.queueId = queueId;
         this.url = url;
+        this.chunkSize = chunkSize;
         this.createUploader = createUploader;
     }
     addNewTask(task, uploadRetryDelays) {
@@ -39,6 +40,7 @@ class UploadQueue {
                         retryDelays: uploadRetryDelays,
                         metadata: task.metadata,
                         headers: task.headers,
+                        chunkSize: this.chunkSize,
                         onError: error => {
                             this.callbacks.onError(task.id, error);
                             this.currentTaskId = undefined;
@@ -160,6 +162,7 @@ class UploadManager {
         this.uploadRetryDelays = options.uploadRetryDelays;
         this.onOfflineMessage = options.onOfflineMessage;
         this.url = options.url;
+        this.chunkSize = options.chunkSize || 5 * 1024 * 102;
         this.queue = new p_queue_1.default({ concurrency: this.maxUploadThreads });
         this.queue.on('completed', queueId => {
             delete this.uploadQueues[queueId];
@@ -191,7 +194,7 @@ class UploadManager {
         callbacks.onHold(tasks.map(item => item.id));
         if (!this.uploadQueues[queueId]) {
             this.queue.add(() => {
-                this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId, this.url);
+                this.uploadQueues[queueId] = new UploadQueue(callbacks, this.createUploader, queueId, this.url, this.chunkSize);
                 return this.uploadQueues[queueId].start(tasks, this.uploadRetryDelays);
             });
         }
